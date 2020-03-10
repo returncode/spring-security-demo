@@ -19,6 +19,10 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     HttpTokenSecurityContextRepository httpTokenSecurityContextRepository;
     @Autowired
     LoginSuccessHandler loginSuccessHandler;
+    @Autowired
+    LoginFailureHandler loginFailureHandler;
+    @Autowired
+    LogoutSuccessHandler logoutSuccessHandler;
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
@@ -35,7 +39,12 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin()
                 .authenticationDetailsSource(tokenAuthenticationDetailsSource)
-                .successHandler(loginSuccessHandler);
+                .successHandler(loginSuccessHandler)
+                .failureHandler(loginFailureHandler)
+                .and()
+                .logout()
+                .logoutSuccessHandler(logoutSuccessHandler)
+                .deleteCookies("JSESSIONID");
     }
 
     @Override

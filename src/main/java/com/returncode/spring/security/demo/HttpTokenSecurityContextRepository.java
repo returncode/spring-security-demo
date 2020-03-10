@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class HttpTokenSecurityContextRepository implements SecurityContextRepository {
     private static Logger logger = LogManager.getLogger();
-    private final static String TOKEN_HEADER_NAME = "AUTH-TOKEN";
     private boolean disableUrlRewriting = false;
     private boolean isServlet3 = ClassUtils.hasMethod(ServletRequest.class, "startAsync");
     private AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
@@ -40,7 +39,7 @@ public class HttpTokenSecurityContextRepository implements SecurityContextReposi
     public SecurityContext loadContext(HttpRequestResponseHolder httpRequestResponseHolder) {
         HttpServletRequest request = httpRequestResponseHolder.getRequest();
         HttpServletResponse response = httpRequestResponseHolder.getResponse();
-        String token = request.getHeader(TOKEN_HEADER_NAME);
+        String token = httpToken.readToken(request);
         SecurityContext context = readSecurityContextFromCache(token);
         if (context == null) {
             context = SecurityContextHolder.createEmptyContext();
@@ -70,7 +69,7 @@ public class HttpTokenSecurityContextRepository implements SecurityContextReposi
 
     @Override
     public boolean containsContext(HttpServletRequest httpServletRequest) {
-        String token = httpServletRequest.getHeader(TOKEN_HEADER_NAME);
+        String token = httpToken.readToken(httpServletRequest);
         if (token == null) {
             return false;
         }
@@ -130,7 +129,7 @@ public class HttpTokenSecurityContextRepository implements SecurityContextReposi
         @Override
         protected void saveContext(SecurityContext context) {
             final Authentication authentication = context.getAuthentication();
-            String token = request.getHeader(TOKEN_HEADER_NAME);
+            String token = httpToken.readToken(request);
             if (authentication == null || trustResolver.isAnonymous(authentication)) {
                 if (token != null && authBeforeExecution != null) {
                     // SEC-1587 A non-anonymous context may still be in the session

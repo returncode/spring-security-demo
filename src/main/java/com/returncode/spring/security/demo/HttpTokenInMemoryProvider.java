@@ -2,6 +2,7 @@ package com.returncode.spring.security.demo;
 
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +10,12 @@ import java.util.Map;
 public class HttpTokenInMemoryProvider implements HttpToken {
 
     private final Map<String, Object> tokenCache = new HashMap();
+
+    @Override
+    public String readToken(HttpServletRequest request) {
+        String token = request.getHeader(TOKEN_HEADER_NAME);
+        return token;
+    }
 
     @Override
     public Boolean hasToken(String token) {
