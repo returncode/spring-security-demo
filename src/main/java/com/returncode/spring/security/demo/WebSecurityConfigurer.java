@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -14,13 +15,27 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Autowired
     TokenAuthenticationDetailsSource tokenAuthenticationDetailsSource;
+    @Autowired
+    HttpTokenSecurityContextRepository httpTokenSecurityContextRepository;
+    @Autowired
+    LoginSuccessHandler loginSuccessHandler;
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        super.configure(httpSecurity);
-//        httpSecurity
-//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        httpSecurity.formLogin().authenticationDetailsSource(tokenAuthenticationDetailsSource);
+        httpSecurity
+                .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(new Http401UnauthorizedEntryPoint())
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .securityContext().securityContextRepository(httpTokenSecurityContextRepository)
+                .and()
+                .authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .authenticationDetailsSource(tokenAuthenticationDetailsSource)
+                .successHandler(loginSuccessHandler);
     }
 
     @Override
